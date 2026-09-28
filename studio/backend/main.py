@@ -1710,6 +1710,15 @@ for _prefix, _upstream, _pages in (
         tags = ["hub"],
     )
 app.include_router(youtube_router, prefix = "/api/youtube", tags = ["youtube"])
+# VKong fork: optional "Train on VKong" routes, present only when vkong-connect is installed.
+try:
+    from vkong_connect.integrations.unsloth_studio import create_router as _vkong_router
+except ImportError:
+    _vkong_router = None
+if _vkong_router is not None:
+    app.include_router(
+        _vkong_router(get_current_subject), prefix = "/api/remote-training", tags = ["remote-training"]
+    )
 
 # Re-wrap /v1/* client errors into OpenAI/Anthropic envelopes; non-/v1 keeps {"detail": ...}.
 install_api_error_handlers(app)

@@ -1,3 +1,10 @@
+> [!IMPORTANT]
+> **Unsloth + VKong proof of concept.** This experimental fork
+> ([`tlitech-hq/unsloth-vkong`](https://github.com/tlitech-hq/unsloth-vkong)) adds a
+> **Train on VKong** button to Unsloth Studio. It is not an official Unsloth release;
+> upstream is [`unslothai/unsloth`](https://github.com/unslothai/unsloth).
+> Install and usage: [vkong/README.md](vkong/README.md).
+
 <h1 align="center" style="margin:0;">
   <a href="https://unsloth.ai/docs"><picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/unslothai/unsloth/main/images/unsloth%20logo%20white%20text.png">

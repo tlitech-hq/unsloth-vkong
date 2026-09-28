@@ -2,6 +2,7 @@
 // Copyright 2026-present the Unsloth AI Inc. team. All rights reserved. See /studio/LICENSE.AGPL-3.0
 
 import { Button } from "@/components/ui/button";
+import { TrainOnVKong } from "@/features/remote-training";
 import {
   type StartValidationResult,
   useTrainingActions,
@@ -155,6 +156,7 @@ export function StartTrainingCta() {
         />
         {buttonLabel}
       </Button>
+      <TrainOnVKong disabled={!isReady} />
       {errorMessage && (
         <div
           className={cn(

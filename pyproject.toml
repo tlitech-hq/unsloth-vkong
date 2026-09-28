@@ -187,6 +187,12 @@ studio = [
     "markdown-it-py>=3.0",
 ]
 
+# Experimental fork integration. Keep this off PyPI until the bridge contract is
+# tagged; development installs intentionally follow the TLI repository's main branch.
+vkong = [
+    "vkong-connect @ git+https://github.com/tlitech-hq/vkong-connect.git@main",
+]
+
 triton = [
     # Not raised past 3.0.0 on purpose. torch pins triton exactly, and the oldest
     # torch supported here, 2.6.0, requires `triton==3.2.0`, so any floor above
