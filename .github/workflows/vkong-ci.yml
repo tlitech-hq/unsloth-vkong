@@ -1,0 +1,96 @@
+# VKong fork CI. Upstream Unsloth workflows are disabled on this fork (they need
+# Unsloth's secrets and runners); this is the only workflow that runs here.
+# It checks what the fork adds on top of upstream. See vkong/README.md.
+name: VKong fork CI
+
+on:
+  push:
+    branches: [vkong]
+  pull_request:
+    branches: [vkong]
+  workflow_dispatch:
+    inputs:
+      connect_ref:
+        description: "tlitech-hq/vkong-connect ref for the contract checks"
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vkong-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upstream-surfaces:
+    name: Upstream surfaces used by vkong-connect
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          path: unsloth-vkong
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: tlitech-hq/vkong-connect
+          ref: ${{ inputs.connect_ref || 'main' }}
+          path: vkong-connect
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Contract checks (no ML packages imported)
+        working-directory: vkong-connect
+        run: make integration
+
+  patch-inventory:
+    name: Upstream files changed only as listed in vkong/VKONG_PATCHES.md
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Compare with upstream main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags https://github.com/unslothai/unsloth.git main
+          base=$(git merge-base FETCH_HEAD HEAD)
+          # Modified, deleted or renamed upstream files; added files are fork-owned.
+          changed=$(git diff --name-only --diff-filter=MDR "$base" HEAD)
+          listed=$(grep -oE '^\| `[^`]+`' vkong/VKONG_PATCHES.md | sed -E 's/^\| `(.*)`$/\1/')
+          status=0
+          for file in $changed; do
+            if ! printf '%s\n' "$listed" | grep -qxF "$file"; then
+              echo "::error file=$file::upstream file changed but not listed in vkong/VKONG_PATCHES.md"
+              status=1
+            fi
+          done
+          echo "Upstream files changed by the fork:"; printf '  %s\n' $changed
+          exit $status
+
+  remote-training-ui:
+    name: Train on VKong UI
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: studio/frontend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: studio/frontend/package-lock.json
+      - run: npm ci --no-fund --no-audit
+      - name: Typecheck
+        run: npx tsc -b --pretty false
+      - name: Lint fork UI
+        run: npx eslint src/features/remote-training src/features/studio/wizard/start-training-cta.tsx
+      - name: Build
+        run: npm run build

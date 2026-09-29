@@ -16,7 +16,10 @@ API. Local training must keep working when vkong-connect is not installed.
 
 Branches: `main` mirrors upstream; the fork's work lives on `vkong`. To follow upstream:
 `git fetch upstream && git switch vkong && git merge upstream/main`, then run
-vkong-connect's `make check` against this checkout.
+vkong-connect's `make check` against this checkout and `./vkong/disable-upstream-workflows.sh`
+(GitHub enables workflow files that upstream adds). Only `.github/workflows/vkong-ci.yml`
+runs on this fork: upstream surfaces used by vkong-connect, the patch inventory in
+`vkong/VKONG_PATCHES.md`, and the Train on VKong UI.
 
 Work is tracked in GitHub Issues on `tlitech-hq/vkong-connect` with `area/studio`.
 Read [vkong/README.md](vkong/README.md) and [vkong/ENGINEERING_PRINCIPLES.md](vkong/ENGINEERING_PRINCIPLES.md)
